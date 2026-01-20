@@ -1,48 +1,97 @@
-Para apagar o gestionar tu aplicación en **PM2**, tienes varios comandos dependiendo de lo que quieras lograr (detener temporalmente, borrar de la lista o apagar todo el sistema).
+# 🛠️ Guía : Gestión de Servidores con PM2
 
-Aquí tienes los comandos clave:
+Esta guía cubre desde el encendido inicial hasta la configuración de **auto-arranque**, asegurando que tanto tu **API** como tu **Frontend** sobrevivan a fallos y reinicios del servidor.
 
-### 1. Detener la aplicación (Stop)
+## Paso 1: Instalación Global
 
-Esto "apaga" el proceso, pero lo mantiene en la lista de PM2 para que puedas iniciarlo después con un simple `start`.
-
-```bash
-# Por nombre
-pm2 stop api-time-report
-
-# Por ID (el número que sale en 'pm2 status')
-pm2 stop 0
-
-# Detener todas las aplicaciones activas
-pm2 stop all
-
-```
-
-### 2. Eliminar de la lista (Delete)
-
-Si ya no vas a usar la aplicación y quieres que deje de aparecer en `pm2 status` y libere la memoria por completo:
+PM2 debe estar disponible en todo el sistema.
 
 ```bash
-pm2 delete api-time-report
-
-```
-
-### 3. Matar el proceso de PM2 por completo (Kill)
-
-Si quieres cerrar **todo** el gestor de PM2 (esto detendrá todas las aplicaciones que estés corriendo bajo PM2 de una vez):
-
-```bash
-pm2 kill
+npm install -g pm2
 
 ```
 
 ---
 
-### Tabla de Resumen de Gestión
+## Paso 2: Encendido de Aplicaciones
 
-| Acción        | Comando                | Qué hace exactamente                               |
-| ------------- | ---------------------- | -------------------------------------------------- |
-| **Pausar**    | `pm2 stop <nombre>`    | Detiene el código, pero el registro sigue ahí.     |
-| **Reactivar** | `pm2 start <nombre>`   | Vuelve a encender una app que estaba en `stop`.    |
-| **Reiniciar** | `pm2 restart <nombre>` | Apaga y enciende (útil tras actualizar el código). |
-| **Eliminar**  | `pm2 delete <nombre>`  | Borra la app de la lista de monitoreo.             |
+Entra a la carpeta de tu API y ejecuta:
+
+```bash
+pm2 start dist/index.js --name "api-time-report"
+
+```
+
+---
+
+## Paso 3: Configuración de "Supervivencia" (Auto-reboot)
+
+Por defecto, si el servidor físico se apaga, PM2 no iniciará solo. Sigue estos pasos para que tu servidor sea 100% autónomo:
+
+1. **Generar el script de sistema:**
+   Ejecuta el siguiente comando:
+
+```bash
+pm2 startup
+
+```
+
+2. **Ejecutar el comando resultante:**
+   PM2 te responderá con una línea de código que empieza con `sudo env PATH...`. **Copia esa línea completa, pégala en tu terminal y dale Enter.**
+3. **Guardar el estado actual:**
+   Una vez que tus apps estén en `online` y hayas ejecutado el paso anterior, guarda la configuración:
+
+```bash
+pm2 save
+
+```
+
+_Esto crea un "archivo de resurrección" que PM2 usará al encender el servidor._
+
+---
+
+## Paso 4: Monitoreo y Mantenimiento (opcional)
+
+### Panel de Control Visual
+
+Para ver el consumo de CPU, memoria y logs en tiempo real de forma elegante:
+
+```bash
+pm2 monit
+
+```
+
+### Gestión de Procesos
+
+- **Ver lista:** `pm2 status`
+- **Reiniciar tras cambios:** `pm2 restart all` (o el nombre de la app)
+- **Ver errores recientes:** `pm2 logs --lines 50`
+
+---
+
+## Paso 5: Ciclo de Actualización de Código
+
+Cuando hagas cambios en tu código, el flujo correcto para no romper nada es:
+
+### En el Backend:
+
+```bash
+git pull
+npm install
+npm run build
+pm2 restart api-time-report
+
+```
+
+---
+
+## Resumen de Comandos de Apagado
+
+| Acción                   | Comando               |
+| ------------------------ | --------------------- |
+| **Pausar temporalmente** | `pm2 stop <nombre>`   |
+| **Eliminar de la lista** | `pm2 delete <nombre>` |
+| **Apagar todo PM2**      | `pm2 kill`            |
+| **Limpiar estadísticas** | `pm2 flush`           |
+
+---
