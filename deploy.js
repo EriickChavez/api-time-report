@@ -1,36 +1,47 @@
 const { execSync } = require("child_process");
+const os = require("os");
 
-const APP_NAME = "api-time-report";
-const ENTRY_POINT = "dist/index.js";
+const isWindows = os.platform() === "win32";
 
 function run(command) {
   try {
     console.log(`\n🏃 Ejecutando: ${command}`);
-    execSync(command, { stdio: "inherit" });
+    execSync(command, { stdio: "inherit", shell: true });
+    return true;
   } catch (error) {
-    console.error(`\n❌ Error al ejecutar: ${command}`);
-    process.exit(1);
+    console.error(`\n❌ Error en: ${command}`);
+    return false;
   }
 }
 
-console.log(`🚀 Iniciando despliegue de ${APP_NAME}...`);
+console.log(`🚀 Iniciando despliegue multiplataforma en: ${os.platform()}`);
 
-// 1. Instalar dependencias
+// 1. Preparación estándar (Igual en todos los OS)
 run("npm install");
-
-// 2. Compilar (Build)
 run("npm run build");
 
-// 3. Manejo de PM2 (Reinicio o Inicio)
+// 2. Gestión de PM2 usando el archivo ecosystem
 try {
-  console.log(`\n♻️ Intentando reiniciar ${APP_NAME}...`);
-  execSync(`pm2 restart ${APP_NAME}`, { stdio: "inherit" });
+  run("pm2 reload ecosystem.config.js --env production");
 } catch (e) {
-  console.log(`\n🆕 La app no existía en PM2. Iniciando por primera vez...`);
-  run(`pm2 start ${ENTRY_POINT} --name "${APP_NAME}"`);
+  run("pm2 start ecosystem.config.js");
 }
 
-// 4. Persistencia
-run("pm2 save");
+// 3. Persistencia de auto-encendido según el OS
+console.log("\n💾 Configurando persistencia de reinicio...");
 
-console.log(`\n✅ ¡Proceso completado con éxito en ${process.platform}!`);
+if (isWindows) {
+  // Para Windows requerimos pm2-windows-startup (debe instalarse una vez globalmente)
+  console.log(
+    "Tip: Asegúrate de haber ejecutado 'npm install -g pm2-windows-startup' una vez.",
+  );
+  run("pm2 save");
+} else {
+  // Para Linux/Mac, intentamos guardar y recordamos el comando startup
+  run("pm2 save");
+  console.log(
+    "\n💡 Si es la primera vez en Linux/Mac, ejecuta: 'pm2 startup' y sigue sus instrucciones.",
+  );
+}
+
+console.log(`\n✅ Despliegue completado con éxito.`);

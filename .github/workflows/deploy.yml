@@ -1,0 +1,20 @@
+name: Universal Deploy
+on:
+  push:
+    branches: [main] # Esto dice: "Cada vez que yo suba cambios a la rama main..."
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ejecutar comandos vía SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /Users/erickchavez/Documents/GitHub/api-time-report
+            git pull origin main
+            node deploy.js
