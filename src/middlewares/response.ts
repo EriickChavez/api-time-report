@@ -7,13 +7,17 @@ export class ResponseUtil {
      * Envía una respuesta exitosa
      */
     static success<T>(res: Response, data?: T, message?: string, status: number = HttpStatus.OK): Response {
+        console.log('ResponseUtil.success called', { status, message });
         const response: ApiResponse<T> = {
             success: true,
             data,
             message,
             timestamp: new Date().toISOString()
         };
-        return res.status(status).json(response);
+        console.log('ResponseUtil sending json...');
+        const result = res.status(status).json(response);
+        console.log('ResponseUtil json sent');
+        return result;
     }
 
     /**

@@ -3,6 +3,13 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+console.log('DB Config Check:', {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    port: process.env.DB_PORT,
+    ssl: true
+});
+
 export const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -12,6 +19,7 @@ export const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
+    connectTimeout: 60000, // 60 seconds
     ssl: {
         minVersion: 'TLSv1.2',
         rejectUnauthorized: true
