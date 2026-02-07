@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "postinstall": "npm run build",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "deploy": "node deploy.js"
   },
   "keywords": [],
   "author": "",
